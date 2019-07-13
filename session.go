@@ -42,10 +42,10 @@ type Session struct {
 	timeout   time.Duration          // Session timeout.
 }
 
-// NewSession returns a pointer to a new session.
+// NewSession returns a pointer to a new Session
 func NewSession(idByteLength int, sessionTimeout time.Duration) *Session {
 	currentTime := time.Now()
-	sess := Session{
+	session := Session{
 		id:        genID(idByteLength),
 		attribute: make(map[string]interface{}),
 		created:   currentTime,
@@ -53,7 +53,7 @@ func NewSession(idByteLength int, sessionTimeout time.Duration) *Session {
 		timeout:   sessionTimeout,
 	}
 
-	return &sess
+	return &session
 }
 
 // ID is SessionInterface method implementation.
@@ -65,6 +65,11 @@ func (s *Session) ID() string {
 func (s *Session) Attribute(name string) (interface{}, bool) {
 	elem, elemExists := s.attribute[name]
 	return elem, elemExists
+}
+
+// SetAttribute is SessionInterface method implementation.
+func (s *Session) SetAttribute(name string, value interface{}) {
+	s.attribute[name] = value
 }
 
 // Created is SessionInterface method implementation.
@@ -80,6 +85,11 @@ func (s *Session) Accessed() time.Time {
 // Timeout is SessionInterface method implementation.
 func (s *Session) Timeout() time.Duration {
 	return s.timeout
+}
+
+// Access updateds the accessed to field to the curren time.
+func (s *Session) Access() {
+	s.accessed = time.Now()
 }
 
 // genID generates a random session id using the crypto/rand package.

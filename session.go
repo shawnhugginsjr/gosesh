@@ -35,22 +35,22 @@ type SessionInterface interface {
 
 // Session is a SessionInterface implementation.
 type Session struct {
-	id        string                 // ID of the session.
-	attribute map[string]interface{} // attributes specified at session creation.
-	created   time.Time              // Creation time.
-	accessed  time.Time              // Last accessed time.
-	timeout   time.Duration          // Session timeout.
+	id         string                 // ID of the session.
+	attributes map[string]interface{} // attributes specified at session creation.
+	created    time.Time              // Creation time.
+	accessed   time.Time              // Last accessed time.
+	timeout    time.Duration          // Session timeout.
 }
 
 // NewSession returns a pointer to a new Session
 func NewSession(idByteLength int, sessionTimeout time.Duration) *Session {
 	currentTime := time.Now()
 	session := Session{
-		id:        genID(idByteLength),
-		attribute: make(map[string]interface{}),
-		created:   currentTime,
-		accessed:  currentTime,
-		timeout:   sessionTimeout,
+		id:         genID(idByteLength),
+		attributes: make(map[string]interface{}),
+		created:    currentTime,
+		accessed:   currentTime,
+		timeout:    sessionTimeout,
 	}
 
 	return &session
@@ -63,13 +63,13 @@ func (s *Session) ID() string {
 
 // Attribute is SessionInterface method implementation.
 func (s *Session) Attribute(name string) (interface{}, bool) {
-	elem, elemExists := s.attribute[name]
+	elem, elemExists := s.attributes[name]
 	return elem, elemExists
 }
 
 // SetAttribute is SessionInterface method implementation.
 func (s *Session) SetAttribute(name string, value interface{}) {
-	s.attribute[name] = value
+	s.attributes[name] = value
 }
 
 // Created is SessionInterface method implementation.

@@ -3,6 +3,7 @@ package gosesh
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 // StoreInterface is responsible for fetching and saving sessions by their ID.
@@ -21,16 +22,21 @@ type StoreInterface interface {
 
 // MemStore is a StoreInterface implementation.
 type MemStore struct {
-	sessions map[string]SessionInterface // Map of sessions (mapped from ID)
-	mux      *sync.RWMutex               // mutex to synchronize access to sessions
+	sessions  map[string]SessionInterface // Map of sessions (mapped from ID)
+	mux       *sync.RWMutex               // mutex to synchronize access to sessions
+	ticker    *time.Ticker
+	endTicker chan bool
 }
 
-// NewMemStore returns a pointer to a MemStore
-func NewMemStore() *MemStore {
+// NewMemStore returns a pointer to a MemStore.
+func NewMemStore(interval time.Duration) *MemStore {
 	s := &MemStore{
-		sessions: make(map[string]SessionInterface),
-		mux:      &sync.RWMutex{},
+		sessions:  make(map[string]SessionInterface),
+		mux:       &sync.RWMutex{},
+		endTicker: make(chan bool),
 	}
+
+	go s.clearTimeouts(interval)
 
 	return s
 }
@@ -63,4 +69,40 @@ func (s *MemStore) Remove(session SessionInterface) {
 	defer s.mux.Unlock()
 
 	delete(s.sessions, session.ID())
+}
+
+// Close impliments Store.Close()
+func (s *MemStore) Close() {
+	close(s.endTicker)
+}
+
+// clearTimeouts will remove all timed out sessions.
+func (s *MemStore) clearTimeouts(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for {
+		select {
+		case <-s.endTicker:
+			ticker.Stop()
+			return
+		case now := <-ticker.C:
+			ids := make([]string, 0)
+
+			s.mux.RLock()
+			for _, session := range s.sessions {
+				// Check if session has timed out.
+				if now.Sub(session.Accessed()) > session.Timeout() {
+					ids = append(ids, session.ID())
+				}
+			}
+			s.mux.RUnlock()
+
+			if len(ids) > 0 {
+				s.mux.Lock()
+				for _, id := range ids {
+					delete(s.sessions, id)
+				}
+				s.mux.Unlock()
+			}
+		}
+	}
 }

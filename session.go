@@ -33,39 +33,52 @@ type SessionInterface interface {
 	Access()
 }
 
-// SessionInterface implementation.
-type session struct {
-	id           string                 // ID of the session.
-	attribute    map[string]interface{} // Constant attributes specified at session creation.
-	setAttribute map[string]interface{} // Attributes stored in the session.
-	created      time.Time              // Creation time.
-	accessed     time.Time              // Last accessed time.
-	timeout      time.Duration          // Session timeout.
+// Session is a SessionInterface implementation.
+type Session struct {
+	id        string                 // ID of the session.
+	attribute map[string]interface{} // attributes specified at session creation.
+	created   time.Time              // Creation time.
+	accessed  time.Time              // Last accessed time.
+	timeout   time.Duration          // Session timeout.
 }
 
-// SessionInterface method implementation.
-func (s *session) ID() string {
+// NewSession returns a pointer to a new session.
+func NewSession(idByteLength int, sessionTimeout time.Duration) *Session {
+	currentTime := time.Now()
+	sess := Session{
+		id:        genID(idByteLength),
+		attribute: make(map[string]interface{}),
+		created:   currentTime,
+		accessed:  currentTime,
+		timeout:   sessionTimeout,
+	}
+
+	return &sess
+}
+
+// ID is SessionInterface method implementation.
+func (s *Session) ID() string {
 	return s.id
 }
 
-// SessionInterface method implementation.
-func (s *session) Attribute(name string) (interface{}, bool) {
+// Attribute is SessionInterface method implementation.
+func (s *Session) Attribute(name string) (interface{}, bool) {
 	elem, elemExists := s.attribute[name]
 	return elem, elemExists
 }
 
-// SessionInterface method implementation.
-func (s *session) Created() time.Time {
+// Created is SessionInterface method implementation.
+func (s *Session) Created() time.Time {
 	return s.created
 }
 
-// SessionInterface method implementation.
-func (s *session) Accessed() time.Time {
+// Accessed is SessionInterface method implementation.
+func (s *Session) Accessed() time.Time {
 	return s.accessed
 }
 
-// SessionInterface method implementation.
-func (s *session) Timeout() time.Duration {
+// Timeout is SessionInterface method implementation.
+func (s *Session) Timeout() time.Duration {
 	return s.timeout
 }
 

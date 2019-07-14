@@ -3,19 +3,20 @@ package gosesh
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // CookieManager manages session access through cookies.
 type CookieManager struct {
 	Store             StoreInterface
-	SessionCookieName string // Name of cookies that stores the session id
-	CookiePath        string // Path of the cookie
-	CookieMaxAge      int    // Max age for the cookie in seconds
-	Secure            bool   // If session cookies can only be sent over HTTPS
+	SessionCookieName string        // Name of cookies that stores the session id
+	CookiePath        string        // Path of the cookie
+	CookieMaxAge      time.Duration // Max age for the cookie
+	Secure            bool          // If session cookies can only be sent over HTTPS
 }
 
 // NewCookieManager returns a pointer to a CookieManager
-func NewCookieManager(store StoreInterface, sessionCookieName, cookiePath string, cookieMaxAge int, secure bool) *CookieManager {
+func NewCookieManager(store StoreInterface, sessionCookieName, cookiePath string, cookieMaxAge time.Duration, secure bool) *CookieManager {
 	return &CookieManager{
 		Store:             store,
 		SessionCookieName: sessionCookieName,
@@ -41,7 +42,7 @@ func (c *CookieManager) Add(session SessionInterface, w http.ResponseWriter) {
 		Name:     c.SessionCookieName,
 		Value:    session.ID(),
 		Path:     c.CookiePath,
-		MaxAge:   c.CookieMaxAge,
+		MaxAge:   int(c.CookieMaxAge.Seconds()),
 		Secure:   c.Secure,
 		HttpOnly: true,
 	}
